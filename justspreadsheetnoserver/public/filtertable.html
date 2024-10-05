@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Players Table</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #435c8c;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">NBA Players Stats</h1>
+        
+        <div class="mb-4 flex flex-wrap gap-4">
+            <input type="text" id="searchInput" placeholder="Search players..." class="p-2 border rounded">
+            <select id="positionFilter" class="p-2 border rounded">
+                <option value="">All Positions</option>
+            </select>
+            <select id="teamFilter" class="p-2 border rounded">
+                <option value="">All Teams</option>
+            </select>
+        </div>
+
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="table-container">
+                <table id="playersTable" class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Rank</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Player</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Position</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Team</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Games Played</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Minutes Per Game</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Points Per Game</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Rebounds Per Game</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Assists Per Game</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Table rows will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allPlayers = [];
+
+        async function fetchPlayers() {
+            try {
+                const response = await fetch('http://localhost:3000/api/players');
+                allPlayers = await response.json();
+                populateFilters();
+                renderTable(allPlayers);
+            } catch (error) {
+                console.error('Error fetching players:', error);
+            }
+        }
+
+        function populateFilters() {
+            const positions = new Set();
+            const teams = new Set();
+
+            allPlayers.forEach(player => {
+                if (player.position) positions.add(player.position);
+                if (player.team) teams.add(player.team);
+            });
+
+            const positionFilter = document.getElementById('positionFilter');
+            positions.forEach(position => {
+                const option = document.createElement('option');
+                option.value = position;
+                option.textContent = position;
+                positionFilter.appendChild(option);
+            });
+
+            const teamFilter = document.getElementById('teamFilter');
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                teamFilter.appendChild(option);
+            });
+        }
+
+        function renderTable(players) {
+            const tbody = document.querySelector('#playersTable tbody');
+            tbody.innerHTML = '';
+
+            players.forEach(player => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.rank || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <img class="h-10 w-10 rounded-full" src="nbaheadshots/player_images/${player.player?.replace(' ', '-')}.jpg" alt="${player.player}">
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${player.player || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.position || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.team || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.games_played || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.minutes_per_game || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.points_per_game || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.rebounds_per_game || ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.assists_per_game || ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterPlayers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const positionFilter = document.getElementById('positionFilter').value;
+            const teamFilter = document.getElementById('teamFilter').value;
+
+            const filteredPlayers = allPlayers.filter(player => {
+                const matchesSearch = player.player.toLowerCase().includes(searchTerm);
+                const matchesPosition = !positionFilter || player.position === positionFilter;
+                const matchesTeam = !teamFilter || player.team === teamFilter;
+                return matchesSearch && matchesPosition && matchesTeam;
+            });
+
+            renderTable(filteredPlayers);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterPlayers);
+        document.getElementById('positionFilter').addEventListener('change', filterPlayers);
+        document.getElementById('teamFilter').addEventListener('change', filterPlayers);
+
+        fetchPlayers();
+    </script>
+</body>
+</html>
