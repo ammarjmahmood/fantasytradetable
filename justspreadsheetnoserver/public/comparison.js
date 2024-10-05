@@ -284,7 +284,7 @@ function updatePlayerCard(card, playerName) {
     infoContainer.innerHTML = `
         <div class="player-info">
             <div class="player-ranking">Rank: ${playerInfo.rank || 'N/A'}</div>
-            <div class="player-position">Position: ${playerInfo.position || 'N/A'}</div>
+            <div class="player-position">Position: ${playerInfo.pos || 'N/A'}</div>
             <div class="player-team">Team: ${playerInfo.team || 'N/A'}</div>
         </div>
     `;
