@@ -1,0 +1,335 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #E2EFFE;
+    margin: 0;
+    padding: 10px;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 0 20px rgba(11, 37, 88, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #0B2558;
+    font-size: 2em;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.player-selection-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+#player-trading, #player-receiving {
+    width: 48%;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(11, 37, 88, 0.05);
+}
+
+h3 {
+    color: #0B2558;
+    border-bottom: 2px solid #C85103;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.player-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+}
+
+.player-card img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: contain;
+    margin-right: 10px;
+}
+
+.player-info-container {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.player-info {
+    flex-grow: 1;
+}
+
+.player-ranking, .player-position, .player-team {
+    margin-bottom: 3px;
+    font-size: 0.8em;
+    color: #555;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #0B2558;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    background-color: #C85103;
+    transform: translateY(-2px);
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.compare-button-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.comparison-container {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-x: auto;
+    box-shadow: 0 0 10px rgba(11, 37, 88, 0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.9em;
+}
+
+th {
+    background-color: #0B2558;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #e6e6e6;
+}
+
+.search-results {
+    max-height: 150px;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    position: absolute;
+    width: calc(100% - 20px);
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.search-results div {
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-results div:hover {
+    background-color: #E2EFFE;
+}
+
+@media (max-width: 768px) {
+    .player-selection-container {
+        flex-direction: column;
+    }
+
+    #player-trading, #player-receiving {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    .player-card {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+
+    .player-card img {
+        width: 60px;
+        height: 60px;
+        margin-right: 0;
+        margin-bottom: 10px;
+        border-radius: 50%;
+        object-fit: contain;
+    }
+
+    .player-info-container {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .player-info {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 400px) {
+    body {
+        padding: 5px;
+    }
+
+    .container {
+        padding: 10px 5px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    #player-trading, #player-receiving {
+        padding: 5px;
+    }
+
+    .player-card {
+        padding: 5px;
+    }
+
+    .player-card img {
+        width: 60px;
+        height: 60px;
+    }
+
+    input[type="text"], button {
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 6px;
+        font-size: 0.8em;
+    }
+}
+
+.ai-analysis-container {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .ai-analysis-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  
+  .ai-analysis-button:hover {
+    background-color: #45a049;
+  }
+  
+  .ai-analysis-popup {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+  
+  .ai-analysis-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 10px;
+    position: relative;
+  }
+  
+  .close-popup {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .close-popup:hover,
+  .close-popup:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  #aiAnalysisText {
+    margin-top: 20px;
+    line-height: 1.6;
+  }
+  
+  @media (max-width: 768px) {
+    .ai-analysis-content {
+      width: 90%;
+      margin: 20% auto;
+    }
+  }
+
+  .ai-analysis-button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+  }
+  
+  .ai-analysis-button:disabled:hover {
+    background-color: #cccccc;
+  }
