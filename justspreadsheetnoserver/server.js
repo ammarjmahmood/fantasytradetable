@@ -27,8 +27,8 @@ async function getSheetData() {
   const sheets = google.sheets({ version: 'v4', auth: client });
 
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: '1OGVWwKgwZVZ-uHAt6DqodCclY4gl1SRhtoowKaY2qIg',
-    range: 'Sheet1!A1:T348',
+    spreadsheetId: '1QCfd6RRMKMvakUWcm1fA8Kof1hjrH_0nwkD_iWngEiM',
+    range: 'Sheet1!A1:U351',
   });
 
   return res.data.values;

@@ -12,12 +12,12 @@ body {
     background-color: #ffffff;
     border-radius: 15px;
     padding: 15px;
-    box-shadow: 0 0 20px rgba(11, 37, 88, 0.1);
+    box-shadow: 0 0 20px rgba(67, 92, 140, 0.1);
 }
 
 h1 {
     text-align: center;
-    color: #0B2558;
+    color: #435c8c;
     font-size: 2em;
     margin-bottom: 20px;
     text-transform: uppercase;
@@ -35,12 +35,12 @@ h1 {
     background-color: #f9f9f9;
     border-radius: 10px;
     padding: 10px;
-    box-shadow: 0 0 10px rgba(11, 37, 88, 0.05);
+    box-shadow: 0 0 10px rgba(67, 92, 140, 0.05);
 }
 
 h3 {
-    color: #0B2558;
-    border-bottom: 2px solid #C85103;
+    color: #435c8c;
+    border-bottom: 2px solid #f97315;
     padding-bottom: 5px;
     margin-bottom: 10px;
     font-size: 1.2em;
@@ -51,7 +51,7 @@ h3 {
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(67, 92, 140, 0.1);
     display: flex;
     align-items: center;
 }
@@ -91,7 +91,7 @@ input[type="text"] {
 }
 
 button {
-    background-color: #0B2558;
+    background-color: #435c8c;
     color: white;
     border: none;
     padding: 10px 15px;
@@ -104,7 +104,7 @@ button {
 }
 
 button:hover {
-    background-color: #C85103;
+    background-color: #f97315;
     transform: translateY(-2px);
 }
 
@@ -124,7 +124,7 @@ button:disabled {
     border-radius: 10px;
     padding: 10px;
     overflow-x: auto;
-    box-shadow: 0 0 10px rgba(11, 37, 88, 0.05);
+    box-shadow: 0 0 10px rgba(67, 92, 140, 0.05);
 }
 
 table {
@@ -141,7 +141,7 @@ th, td {
 }
 
 th {
-    background-color: #0B2558;
+    background-color: #435c8c;
     color: white;
     font-weight: bold;
     text-transform: uppercase;
@@ -165,7 +165,7 @@ tr:hover {
     width: calc(100% - 20px);
     z-index: 1000;
     display: none;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 16px rgba(67, 92, 140, 0.1);
 }
 
 .search-results div {
@@ -176,6 +176,79 @@ tr:hover {
 
 .search-results div:hover {
     background-color: #E2EFFE;
+}
+
+.ai-analysis-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.ai-analysis-button {
+    background-color: #f97315;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.ai-analysis-button:hover {
+    background-color: #e66000;
+}
+
+.ai-analysis-popup {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(67, 92, 140, 0.4);
+}
+
+.ai-analysis-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.close-popup {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-popup:hover,
+.close-popup:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#aiAnalysisText {
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.ai-analysis-button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.ai-analysis-button:disabled:hover {
+    background-color: #cccccc;
 }
 
 @media (max-width: 768px) {
@@ -216,6 +289,11 @@ tr:hover {
         width: 100%;
         text-align: center;
     }
+
+    .ai-analysis-content {
+        width: 90%;
+        margin: 20% auto;
+    }
 }
 
 @media (max-width: 400px) {
@@ -253,83 +331,3 @@ tr:hover {
         font-size: 0.8em;
     }
 }
-
-.ai-analysis-container {
-    text-align: center;
-    margin-top: 20px;
-  }
-  
-  .ai-analysis-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-  }
-  
-  .ai-analysis-button:hover {
-    background-color: #45a049;
-  }
-  
-  .ai-analysis-popup {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-  }
-  
-  .ai-analysis-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 600px;
-    border-radius: 10px;
-    position: relative;
-  }
-  
-  .close-popup {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .close-popup:hover,
-  .close-popup:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  
-  #aiAnalysisText {
-    margin-top: 20px;
-    line-height: 1.6;
-  }
-  
-  @media (max-width: 768px) {
-    .ai-analysis-content {
-      width: 90%;
-      margin: 20% auto;
-    }
-  }
-
-  .ai-analysis-button:disabled {
-    background-color: #cccccc;
-    color: #666666;
-    cursor: not-allowed;
-  }
-  
-  .ai-analysis-button:disabled:hover {
-    background-color: #cccccc;
-  }
