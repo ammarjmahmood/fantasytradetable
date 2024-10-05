@@ -195,4 +195,5 @@ cron.schedule('0 * * * *', updateData);
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     console.log(`View HTML table at http://localhost:${PORT}/htmltable`);
+    console.log(`View comparison at http://localhost:3000/api/players`);
 });
