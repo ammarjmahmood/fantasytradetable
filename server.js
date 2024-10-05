@@ -4,7 +4,6 @@ const path = require('path');
 const cors = require('cors');
 const cron = require('node-cron');
 const { google } = require('googleapis');
-const mysql = require('mysql2/promise');
 const fs = require('fs');
 
 const app = express();
@@ -20,16 +19,7 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
 });
 
-// Create a connection pool
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'ballhog_googlespreadsheet',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+let sheetData = [];
 
 // Get the spreadsheet data
 async function getSheetData() {
@@ -37,96 +27,80 @@ async function getSheetData() {
   const sheets = google.sheets({ version: 'v4', auth: client });
 
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: '1OGVWwKgwZVZ-uHAt6DqodCclY4gl1SRhtoowKaY2qIg',
-    range: 'Sheet1!A1:T348',
+    spreadsheetId: '1QCfd6RRMKMvakUWcm1fA8Kof1hjrH_0nwkD_iWngEiM',
+    range: 'Sheet1!A1:U351',
   });
 
   return res.data.values;
 }
 
-// Clear the table and insert Google Sheets data into MySQL
-async function updateDatabase(data) {
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
-
-    await connection.execute('TRUNCATE TABLE ballhog_projections');
-    console.log('Existing data cleared from the table.');
-
-    const query = `INSERT INTO ballhog_projections (
-      \`rank\`, player_name, position, team, games_played, minutes_per_game, 
-      field_goals_made, field_goals_attempted, field_goal_percentage, 
-      free_throws_made, free_throws_attempted, free_throw_percentage, 
-      three_pointers_made, points_per_game, rebounds_per_game, assists_per_game, 
-      steals_per_game, blocks_per_game, turnovers_per_game, z_scores
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    
-    for (const row of data.slice(1)) { // Skip header row
-      const sanitizedRow = row.slice(0, 20);
-      await connection.execute(query, sanitizedRow);
-    }
-
-    await connection.commit();
-    console.log('New data inserted into database.');
-  } catch (err) {
-    await connection.rollback();
-    throw err;
-  } finally {
-    connection.release();
-  }
-}
-
-let nextUpdateTime;
-
-function updateCountdown() {
-  const now = new Date();
-  const timeLeft = nextUpdateTime - now;
-  
-  if (timeLeft > 0) {
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-    
-    process.stdout.write(`\rNext update in ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-  }
-}
-
 // Function to update data
 async function updateData() {
-    console.log('\nUpdating data...');
-    try {
-        const data = await getSheetData();
-        await updateDatabase(data);
-        console.log('Data update completed successfully');
-        
-        // Set the next update time to 1 hour from now
-        nextUpdateTime = new Date(Date.now() + 60 * 60 * 1000);
-    } catch (error) {
-        console.error('Error updating data:', error);
-    }
+  console.log('\nUpdating data...');
+  try {
+    sheetData = await getSheetData();
+    console.log('Data update completed successfully');
+  } catch (error) {
+    console.error('Error updating data:', error);
+  }
 }
 
-// Allow requests from localhost:3000
-app.use(cors({ origin: `http://localhost:${PORT}` }));
+// Use this more flexible CORS configuration
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like file:// or curl requests)
+    if (!origin || origin === `http://localhost:${PORT}`) {
+      return callback(null, true);  // Allow localhost and null origin (like file://)
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 
-// Serve static files from the root directory
-app.use(express.static(path.join(__dirname)));
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Create an endpoint to fetch all player data as JSON
-app.get('/api/players', async (req, res) => {
-    try {
-      const [rows] = await pool.query('SELECT * FROM ballhog_projections');
-      res.json(rows);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'An error occurred while fetching player data' });
+app.get('/api/players', (req, res) => {
+  try {
+    console.log('Fetching player data...');
+    console.log('Sheet data length:', sheetData.length);
+    
+    if (!Array.isArray(sheetData) || sheetData.length < 2) {
+      throw new Error('Invalid or empty sheet data');
     }
+
+    const headers = sheetData[0];
+    console.log('Headers:', headers);
+
+    const players = sheetData.slice(1).map(row => {
+      const player = {};
+      headers.forEach((header, index) => {
+        player[header.toLowerCase().replace(/ /g, '_')] = row[index];
+      });
+      return player;
+    });
+
+    console.log('Number of players processed:', players.length);
+    console.log('Sample player:', players[0]);
+
+    res.json(players);
+  } catch (err) {
+    console.error('Error in /api/players:', err);
+    res.status(500).json({ error: 'An error occurred while fetching player data', details: err.message });
+  }
 });
 
-// Create an endpoint to display data from MySQL as HTML
-app.get('/htmltable', async (req, res) => {
+
+// Create an endpoint to display data as HTML
+app.get('/htmltable', (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM ballhog_projections');
+    const tableRows = sheetData.map(row => `
+      <tr>
+        ${row.map(cell => `<td>${cell}</td>`).join('')}
+      </tr>
+    `).join('');
+
     res.send(`
       <html>
         <head>
@@ -138,52 +112,7 @@ app.get('/htmltable', async (req, res) => {
         </head>
         <body>
           <table>
-            <tr>
-              <th>Rank</th>
-              <th>Player Name</th>
-              <th>Position</th>
-              <th>Team</th>
-              <th>Games Played</th>
-              <th>Minutes Per Game</th>
-              <th>FG Made</th>
-              <th>FG Attempted</th>
-              <th>FG%</th>
-              <th>FT Made</th>
-              <th>FT Attempted</th>
-              <th>FT%</th>
-              <th>3PM</th>
-              <th>PPG</th>
-              <th>RPG</th>
-              <th>APG</th>
-              <th>SPG</th>
-              <th>BPG</th>
-              <th>TOPG</th>
-              <th>Z-Scores</th>
-            </tr>
-            ${rows.map(row => `
-              <tr>
-                <td>${row.rank}</td>
-                <td>${row.player_name}</td>
-                <td>${row.position}</td>
-                <td>${row.team}</td>
-                <td>${row.games_played}</td>
-                <td>${row.minutes_per_game}</td>
-                <td>${row.field_goals_made}</td>
-                <td>${row.field_goals_attempted}</td>
-                <td>${row.field_goal_percentage}</td>
-                <td>${row.free_throws_made}</td>
-                <td>${row.free_throws_attempted}</td>
-                <td>${row.free_throw_percentage}</td>
-                <td>${row.three_pointers_made}</td>
-                <td>${row.points_per_game}</td>
-                <td>${row.rebounds_per_game}</td>
-                <td>${row.assists_per_game}</td>
-                <td>${row.steals_per_game}</td>
-                <td>${row.blocks_per_game}</td>
-                <td>${row.turnovers_per_game}</td>
-                <td>${row.z_scores}</td>
-              </tr>
-            `).join('')}
+            ${tableRows}
           </table>
         </body>
       </html>
@@ -193,18 +122,6 @@ app.get('/htmltable', async (req, res) => {
     res.status(500).send('An error occurred');
   }
 });
-
-// Update data immediately when server starts
-updateData();
-
-// Schedule data update to run every hour
-cron.schedule('0 * * * *', updateData);
-
-//Every minute
-//cron.schedule('* * * * *', updateData);
-
-// Start the countdown update
-setInterval(updateCountdown, 1000);
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -277,8 +194,15 @@ Make sure to include detailed analysis of the players' stats and their injury hi
   }
 });
 
+// Update data immediately when server starts
+updateData();
+
+// Schedule data update to run every hour
+cron.schedule('0 * * * *', updateData);
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     console.log(`View HTML table at http://localhost:${PORT}/htmltable`);
+    console.log(`View comparison at http://localhost:3000/api/players`);
 });
