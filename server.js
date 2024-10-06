@@ -10,11 +10,15 @@ const app = express();
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
-const credentials = {
-  project_id: process.env.GOOGLE_PROJECT_ID,
-  private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  client_email: process.env.GOOGLE_CLIENT_EMAIL
-};
+let credentials;
+if (process.env.GOOGLE_CREDENTIALS_BASE64) {
+  // We're on Heroku, use the environment variable
+  const credentialsJSON = Buffer.from(process.env.GOOGLE_CREDENTIALS_BASE64, 'base64').toString('utf8');
+  credentials = JSON.parse(credentialsJSON);
+} else {
+  // We're running locally, read from file
+  credentials = JSON.parse(fs.readFileSync('Ballhog IAM Admin.json'));
+}
 
 // Authenticate using the service account
 const auth = new google.auth.GoogleAuth({
