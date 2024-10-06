@@ -356,9 +356,15 @@ function comparePlayers() {
 function combineStats(accumulatedStats, playerStats) {
     for (let stat in playerStats) {
         if (stat !== 'rank' && stat !== 'player_name' && stat !== 'position' && stat !== 'team') {
+            // Handle all stats as raw numbers
             accumulatedStats[stat] = (accumulatedStats[stat] || 0) + parseFloat(playerStats[stat] || 0);
         }
     }
+}
+
+function calculatePercentage(made, attempted) {
+    if (attempted === 0) return 0;
+    return (made / attempted) * 100;
 }
 
 function updateComparisonTable(tradingStats, receivingStats) {
@@ -371,31 +377,45 @@ function updateComparisonTable(tradingStats, receivingStats) {
             ...Object.keys(receivingStats)
         ]);
 
-        // Exclude 'player' and 'pos' from the table
         const excludedStats = ['rank', 'player', 'position', 'team', 'pos'];
 
         allStats.forEach(stat => {
-            if (!excludedStats.includes(stat.toLowerCase())) { // Exclude unwanted stats
+            if (!excludedStats.includes(stat.toLowerCase())) {
                 const row = comparisonTableBody.insertRow();
                 const statCell = row.insertCell(0);
                 statCell.textContent = formatStatName(stat);
                 statCell.style.fontWeight = 'bold';
 
-                const tradingValue = tradingStats[stat] !== undefined ? tradingStats[stat].toFixed(2) : 'N/A';
-                const receivingValue = receivingStats[stat] !== undefined ? receivingStats[stat].toFixed(2) : 'N/A';
+                let tradingValue, receivingValue;
+
+                if (stat === 'fg%') {
+                    tradingValue = calculatePercentage(tradingStats.fgm, tradingStats.fga).toFixed(2);
+                    receivingValue = calculatePercentage(receivingStats.fgm, receivingStats.fga).toFixed(2);
+                } else if (stat === 'ft%') {
+                    tradingValue = calculatePercentage(tradingStats.ftm, tradingStats.fta).toFixed(2);
+                    receivingValue = calculatePercentage(receivingStats.ftm, receivingStats.fta).toFixed(2);
+                } else {
+                    tradingValue = tradingStats[stat] !== undefined ? tradingStats[stat].toFixed(2) : 'N/A';
+                    receivingValue = receivingStats[stat] !== undefined ? receivingStats[stat].toFixed(2) : 'N/A';
+                }
 
                 row.insertCell(1).textContent = tradingValue;
                 row.insertCell(2).textContent = receivingValue;
 
                 const projectionCell = row.insertCell(3);
-                const difference = (receivingStats[stat] || 0) - (tradingStats[stat] || 0);
+                const difference = parseFloat(receivingValue) - parseFloat(tradingValue);
                 projectionCell.textContent = `${difference >= 0 ? '+' : ''}${difference.toFixed(2)}`;
-                projectionCell.style.color = difference >= 0 ? 'green' : 'red';
+                
+                // Special handling for the TO (Turnovers) column
+                if (stat.toLowerCase() === 'to') {
+                    projectionCell.style.color = difference > 0 ? 'red' : (difference < 0 ? 'green' : 'inherit');
+                } else {
+                    projectionCell.style.color = difference >= 0 ? 'green' : 'red';
+                }
             }
         });
     }
 }
-
 
 function formatStatName(stat) {
     return stat.split('_')

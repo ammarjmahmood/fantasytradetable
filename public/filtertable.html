@@ -3,149 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NBA Players Table</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <title>NBA Players Stats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .table-container {
-            max-height: 70vh;
-            overflow-y: auto;
+            overflow-x: auto;
         }
-        th {
-            position: sticky;
-            top: 0;
-            background-color: #435c8c;
-            z-index: 10;
+        table {
+            width: 100%;
+            table-layout: fixed;
+        }
+        th, td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">NBA Players Stats</h1>
-        
+        <h1 id="nba-players-stats" class="text-3xl font-bold text-center text-gray-800 mb-8">NBA Players Stats</h1>
+
         <div class="mb-4 flex flex-wrap gap-4">
-            <input type="text" id="searchInput" placeholder="Search players..." class="p-2 border rounded">
             <select id="positionFilter" class="p-2 border rounded">
                 <option value="">All Positions</option>
             </select>
             <select id="teamFilter" class="p-2 border rounded">
                 <option value="">All Teams</option>
             </select>
+            <input type="text" id="playerSearch" placeholder="Search Player" class="p-2 border rounded">
         </div>
 
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="table-container">
-                <table id="playersTable" class="min-w-full divide-y divide-gray-200">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Rank</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Player</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Position</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Team</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Games Played</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Minutes Per Game</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Points Per Game</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Rebounds Per Game</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Assists Per Game</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <!-- Table rows will be dynamically inserted here -->
-                    </tbody>
-                </table>
-            </div>
+        <div id="columnSelector" class="mb-4 flex flex-wrap gap-2">
+            <!-- Column checkboxes will be populated here -->
+        </div>
+
+        <div class="table-container">
+            <table id="playerStatsTable" class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <!-- Table headers will be populated dynamically -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table rows will be populated by JavaScript -->
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        let allPlayers = [];
+        let playerData = [];
+        let visibleColumns = [];
+        const table = document.getElementById('playerStatsTable');
+        const thead = table.querySelector('thead tr');
+        const tbody = table.querySelector('tbody');
+        const positionFilter = document.getElementById('positionFilter');
+        const teamFilter = document.getElementById('teamFilter');
+        const playerSearch = document.getElementById('playerSearch');
+        const columnSelector = document.getElementById('columnSelector');
 
-        async function fetchPlayers() {
+        async function fetchPlayerData() {
             try {
-                const response = await fetch('http://localhost:3000/api/players');
-                allPlayers = await response.json();
-                populateFilters();
-                renderTable(allPlayers);
+                const response = await fetch('/api/players');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                playerData = await response.json();
+                console.log('Fetched player data:', playerData);
+                return playerData;
             } catch (error) {
-                console.error('Error fetching players:', error);
+                console.error('Error fetching player data:', error);
+                return [];
             }
         }
 
-        function populateFilters() {
+        function populateTable(data) {
+            tbody.innerHTML = '';
+            data.forEach(player => {
+                const row = tbody.insertRow();
+                visibleColumns.forEach(column => {
+                    const cell = row.insertCell();
+                    cell.textContent = player[column];
+                    cell.className = 'p-2 border';
+                });
+            });
+        }
+
+        function populateFilters(data) {
             const positions = new Set();
             const teams = new Set();
 
-            allPlayers.forEach(player => {
-                if (player.position) positions.add(player.position);
-                if (player.team) teams.add(player.team);
+            data.forEach(player => {
+                positions.add(player.position);
+                teams.add(player.team);
             });
 
-            const positionFilter = document.getElementById('positionFilter');
-            positions.forEach(position => {
-                const option = document.createElement('option');
-                option.value = position;
-                option.textContent = position;
-                positionFilter.appendChild(option);
-            });
+            populateFilterOptions(positionFilter, positions);
+            populateFilterOptions(teamFilter, teams);
+        }
 
-            const teamFilter = document.getElementById('teamFilter');
-            teams.forEach(team => {
-                const option = document.createElement('option');
-                option.value = team;
-                option.textContent = team;
-                teamFilter.appendChild(option);
+        function populateFilterOptions(selectElement, options) {
+            selectElement.innerHTML = '<option value="">All</option>';
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                selectElement.appendChild(optionElement);
             });
         }
 
-        function renderTable(players) {
-            const tbody = document.querySelector('#playersTable tbody');
-            tbody.innerHTML = '';
+        function filterData() {
+            const position = positionFilter.value;
+            const team = teamFilter.value;
+            const playerName = playerSearch.value.toLowerCase();
 
-            players.forEach(player => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.rank || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
-                                <img class="h-10 w-10 rounded-full" src="nbaheadshots/player_images/${player.player?.replace(' ', '-')}.jpg" alt="${player.player}">
-                            </div>
-                            <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">${player.player || ''}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.position || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.team || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.games_played || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.minutes_per_game || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.points_per_game || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.rebounds_per_game || ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${player.assists_per_game || ''}</td>
-                `;
-                tbody.appendChild(row);
-            });
+            const filteredData = playerData.filter(player => 
+                (!position || player.position === position) &&
+                (!team || player.team === team) &&
+                player.name.toLowerCase().includes(playerName)
+            );
+
+            populateTable(filteredData);
         }
 
-        function filterPlayers() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const positionFilter = document.getElementById('positionFilter').value;
-            const teamFilter = document.getElementById('teamFilter').value;
-
-            const filteredPlayers = allPlayers.filter(player => {
-                const matchesSearch = player.player.toLowerCase().includes(searchTerm);
-                const matchesPosition = !positionFilter || player.position === positionFilter;
-                const matchesTeam = !teamFilter || player.team === teamFilter;
-                return matchesSearch && matchesPosition && matchesTeam;
-            });
-
-            renderTable(filteredPlayers);
+        function createColumnCheckbox(column) {
+            const label = document.createElement('label');
+            label.className = 'flex items-center space-x-2';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = visibleColumns.includes(column);
+            checkbox.addEventListener('change', () => toggleColumn(column, checkbox.checked));
+            const span = document.createElement('span');
+            span.textContent = column.replace(/_/g, ' ').toUpperCase();
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            columnSelector.appendChild(label);
         }
 
-        document.getElementById('searchInput').addEventListener('input', filterPlayers);
-        document.getElementById('positionFilter').addEventListener('change', filterPlayers);
-        document.getElementById('teamFilter').addEventListener('change', filterPlayers);
+        function toggleColumn(column, visible) {
+            if (visible) {
+                visibleColumns.push(column);
+            } else {
+                visibleColumns = visibleColumns.filter(col => col !== column);
+            }
+            updateTable();
+        }
 
-        fetchPlayers();
+        function updateTable() {
+            // Update headers
+            thead.innerHTML = '';
+            visibleColumns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column.replace(/_/g, ' ').toUpperCase();
+                th.className = 'p-2 border';
+                thead.appendChild(th);
+            });
+
+            // Update rows
+            populateTable(playerData);
+        }
+
+        async function initializePage() {
+            playerData = await fetchPlayerData();
+            if (playerData.length > 0) {
+                visibleColumns = Object.keys(playerData[0]).slice(0, 10); // Start with first 10 columns visible
+                Object.keys(playerData[0]).forEach(createColumnCheckbox);
+                populateFilters(playerData);
+                updateTable();
+            }
+        }
+
+        positionFilter.addEventListener('change', filterData);
+        teamFilter.addEventListener('change', filterData);
+        playerSearch.addEventListener('input', filterData);
+
+        // Initialize the page
+        initializePage();
     </script>
 </body>
 </html>
