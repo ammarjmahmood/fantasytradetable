@@ -10,8 +10,11 @@ const app = express();
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
-// Load your service account credentials
-const credentials = JSON.parse(fs.readFileSync('Ballhog IAM Admin.json'));
+const credentials = {
+  project_id: process.env.GOOGLE_PROJECT_ID,
+  private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  client_email: process.env.GOOGLE_CLIENT_EMAIL
+};
 
 // Authenticate using the service account
 const auth = new google.auth.GoogleAuth({
