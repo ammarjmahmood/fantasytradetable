@@ -63,6 +63,16 @@
         const playerSearch = document.getElementById('playerSearch');
         const columnSelector = document.getElementById('columnSelector');
 
+        // Step 1: Wrap initialization in DOMContentLoaded event
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePage();
+            
+            // Move these event listeners here
+            positionFilter.addEventListener('change', filterData);
+            teamFilter.addEventListener('change', filterData);
+            playerSearch.addEventListener('input', filterData);
+        });
+
         async function fetchPlayerData() {
             try {
                 const response = await fetch('/api/players');
@@ -78,17 +88,19 @@
             }
         }
 
+        // Step 4: Update populateTable function
         function populateTable(data) {
             tbody.innerHTML = '';
             data.forEach(player => {
                 const row = tbody.insertRow();
                 visibleColumns.forEach(column => {
                     const cell = row.insertCell();
-                    cell.textContent = player[column];
+                    cell.textContent = player[column] || ''; // Add fallback for missing properties
                     cell.className = 'p-2 border';
                 });
             });
         }
+
 
         function populateFilters(data) {
             const positions = new Set();
@@ -113,19 +125,21 @@
             });
         }
 
+        // Step 3: Update filterData function
         function filterData() {
             const position = positionFilter.value;
             const team = teamFilter.value;
             const playerName = playerSearch.value.toLowerCase();
 
             const filteredData = playerData.filter(player => 
-                (!position || player.position === position) &&
-                (!team || player.team === team) &&
+                (position === "" || player.position === position) &&
+                (team === "" || player.team === team) &&
                 player.name.toLowerCase().includes(playerName)
             );
 
             populateTable(filteredData);
         }
+
 
         function createColumnCheckbox(column) {
             const label = document.createElement('label');
@@ -164,13 +178,17 @@
             populateTable(playerData);
         }
 
+        // Step 2: Update initializePage function
         async function initializePage() {
             playerData = await fetchPlayerData();
             if (playerData.length > 0) {
-                visibleColumns = Object.keys(playerData[0]).slice(0, 10); // Start with first 10 columns visible
+                visibleColumns = Object.keys(playerData[0]).slice(0, 10);
                 Object.keys(playerData[0]).forEach(createColumnCheckbox);
                 populateFilters(playerData);
                 updateTable();
+                
+                // Add this line to perform initial filtering
+                filterData();
             }
         }
 
