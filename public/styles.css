@@ -1,9 +1,8 @@
-
 body {
     font-family: 'Arial', sans-serif;
     background-color: #435c8c;
     margin: 0;
-    padding: 10px;
+    padding: 0;
     color: #333;
 }
 
@@ -25,8 +24,8 @@ body {
 .header-container h1 {
     text-align: left;
     width: 100%;
-
 }
+
 .ballhog-info {
     font-size: 12px;
     color: #555;
@@ -35,41 +34,6 @@ body {
     line-height: 1.4;
     max-width: 100%;
 }
-
-/* Media query for mobile screens */
-@media (max-width: 768px) {
-    .header-container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .logo {
-        width: 140px;
-        margin-bottom: 10px;
-        align-self: center; /* Add this line to center the logo */
-        order: -1; /* Moves logo to the start */
-        margin-bottom: 0;
-    }
-
-    .header-container h1 {
-        font-size: 1.5em;
-        text-align: center;
-    }
-
-    .ballhog-info {
-        margin-top: 5px;
-    }
-
-    .player-selection-container {
-        flex-direction: column;
-    }
-
-    #player-trading, #player-receiving {
-        width: 100%;
-        margin-bottom: 15px;
-    }
-}
-
 
 /* Logo styling */
 .logo-container {
@@ -86,10 +50,9 @@ body {
     line-height: 1.6;
 }
 
-
 .container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 0 auto; /* Changed back to auto for desktop */
     background-color: #ffffff;
     border-radius: 15px;
     padding: 15px;
@@ -137,23 +100,14 @@ h3 {
     align-items: center;
 }
 
-.player-card {
-    display: flex;
-    align-items: center;  /* Align the items vertically */
-    background-color: #ffffff;
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 5px rgba(67, 92, 140, 0.1);
-}
-
 .player-card input {
-    flex-grow: 1;  /* Make the input box take up the remaining space */
+    flex-grow: 1;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 14px;
-    margin-left: 10px;  /* Add space between the button and input */
+    margin-left: 10px;
+    box-sizing: border-box;
 }
 
 .delete-player-button {
@@ -364,17 +318,44 @@ tr:hover {
     background-color: #cccccc;
 }
 
+/* Media Queries */
 @media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .logo {
+        width: 140px;
+        margin-bottom: 10px;
+        align-self: center;
+        order: -1;
+        margin-bottom: 0;
+    }
+
+    .header-container h1 {
+        font-size: 1.5em;
+        text-align: center;
+    }
+
+    .ballhog-info {
+        margin-top: 5px;
+    }
+
+    .container {
+        margin: 10px; /* Only override margin for mobile */
+        padding: 10px;
+        border-radius: 10px;
+        max-width: calc(100% - 20px); /* Add this to ensure proper width on mobile */
+    }
+
     .player-selection-container {
         flex-direction: column;
     }
 
     #player-trading, #player-receiving {
-        width: 100%;
+        width: auto;
         margin-bottom: 15px;
-    }
-
-    .container {
         padding: 10px;
     }
 
@@ -382,6 +363,8 @@ tr:hover {
         flex-direction: column;
         text-align: center;
         align-items: center;
+        padding: 10px;
+        width: auto;
     }
 
     .player-card img {
@@ -389,8 +372,6 @@ tr:hover {
         height: 60px;
         margin-right: 0;
         margin-bottom: 10px;
-        border-radius: 50%;
-        object-fit: contain;
     }
 
     .player-info-container {
@@ -403,6 +384,11 @@ tr:hover {
         text-align: center;
     }
 
+    input[type="text"] {
+        width: calc(100% - 16px);
+        box-sizing: border-box;
+    }
+
     .ai-analysis-content {
         width: 90%;
         margin: 20% auto;
@@ -410,33 +396,28 @@ tr:hover {
 }
 
 @media (max-width: 400px) {
-    body {
-        padding: 5px;
-    }
-
     .container {
-        padding: 10px 5px;
+        margin: 5px;
+        padding: 8px;
+        max-width: calc(100% - 10px); /* Adjust for smaller margins */
     }
 
     h1 {
         font-size: 1.5em;
     }
 
-    #player-trading, #player-receiving {
-        padding: 5px;
-    }
-
     .player-card {
-        padding: 5px;
+        padding: 8px;
     }
 
     .player-card img {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
     }
 
     input[type="text"], button {
         font-size: 12px;
+        padding: 6px;
     }
 
     th, td {
