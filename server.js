@@ -5,10 +5,23 @@ const cors = require('cors');
 const cron = require('node-cron');
 const { google } = require('googleapis');
 const fs = require('fs');
+const NodeCache = require('node-cache');
+
+// Initialize cache with 1 hour TTL
+const dataCache = new NodeCache({ stdTTL: 3600 });
 
 const app = express();
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ 
+        error: 'Something went wrong!',
+        message: err.message 
+    });
+});
 
 let credentials;
 if (process.env.GOOGLE_CREDENTIALS_BASE64) {
@@ -28,6 +41,43 @@ const auth = new google.auth.GoogleAuth({
 
 let sheetData = [];
 
+// Data transformation helper
+function transformPlayerData(player) {
+    const numericFields = ['games_played', 'minutes_per_game', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 'field_goal_percentage'];
+    
+    numericFields.forEach(field => {
+        if (player[field]) {
+            if (field.includes('percentage')) {
+                player[field] = parseFloat(player[field]).toFixed(1);
+            } else {
+                player[field] = parseFloat(player[field]).toFixed(2);
+            }
+        }
+    });
+    
+    return player;
+}
+
+// Serve static files from project root and set correct MIME types
+app.use(express.static(__dirname, {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (filePath.endsWith('.svg')) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+        } else if (filePath.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+        } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+        }
+    }
+}));
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Get the spreadsheet data
 async function getSheetData() {
   const client = await auth.getClient();
@@ -46,13 +96,15 @@ async function updateData() {
   console.log('\nUpdating data...');
   try {
     sheetData = await getSheetData();
+    // Clear the cache when new data is fetched
+    dataCache.flushAll();
     console.log('Data update completed successfully');
   } catch (error) {
     console.error('Error updating data:', error);
   }
 }
 
-// Use this more flexible CORS configuration
+// CORS Configuration
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like file:// or curl requests)
@@ -64,40 +116,56 @@ app.use(cors({
   credentials: true
 }));
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Create an endpoint to fetch all player data as JSON
-app.get('/api/players', (req, res) => {
-  try {
-    console.log('Fetching player data...');
-    console.log('Sheet data length:', sheetData.length);
-    
-    if (!Array.isArray(sheetData) || sheetData.length < 2) {
-      throw new Error('Invalid or empty sheet data');
-    }
-
-    const headers = sheetData[0];
-    console.log('Headers:', headers);
-
-    const players = sheetData.slice(1).map(row => {
-      const player = {};
-      headers.forEach((header, index) => {
-        player[header.toLowerCase().replace(/ /g, '_')] = row[index];
-      });
-      return player;
-    });
-
-    console.log('Number of players processed:', players.length);
-    console.log('Sample player:', players[0]);
-
-    res.json(players);
-  } catch (err) {
-    console.error('Error in /api/players:', err);
-    res.status(500).json({ error: 'An error occurred while fetching player data', details: err.message });
-  }
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html')); // Trade table page
 });
 
+app.get('/filtertable', (req, res) => {
+    res.sendFile(path.join(__dirname, 'filtertable.html')); // Filter table page
+});
+
+// Create an endpoint to fetch all player data as JSON
+app.get('/api/players', async (req, res, next) => {
+    try {
+        let players = dataCache.get('players');
+        
+        if (!players) {
+            console.log('Cache miss - fetching fresh data');
+            if (!Array.isArray(sheetData) || sheetData.length < 2) {
+                throw new Error('Invalid or empty sheet data');
+            }
+
+            const headers = sheetData[0].map(header => 
+                header.toLowerCase().replace(/ /g, '_')
+            );
+
+            players = sheetData.slice(1).map(row => {
+                const player = {};
+                headers.forEach((header, index) => {
+                    player[header] = row[index];
+                });
+                return transformPlayerData(player);
+            });
+
+            dataCache.set('players', players);
+        }
+
+        // Handle sorting if requested
+        const { sort, order } = req.query;
+        if (sort && players[0].hasOwnProperty(sort)) {
+            players.sort((a, b) => {
+                const aVal = parseFloat(a[sort]) || 0;
+                const bVal = parseFloat(b[sort]) || 0;
+                return order === 'desc' ? bVal - aVal : aVal - bVal;
+            });
+        }
+
+        res.json(players);
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Create an endpoint to display data as HTML
 app.get('/htmltable', (req, res) => {
@@ -170,23 +238,7 @@ Last Season Injuries: ${player2.stats.lastSeasonInjuries}
 
 Please provide the analysis in the following format:
 
-Start by summarizing the games played and who has the edge in health and availability. Discuss the injury history of both players, mentioning any significant injuries and missed games. Compare their performance stats (points, efficiency, rebounds, assists, etc.). Conclude by discussing versatility and reliability, identifying who is the better trade overall, and why. 
-
-I want an answer exactly like this format:
-
-'Based on the provided stats and last season's performance:
-
-Games Played: [Player 1] played X games, while [Player 2] played Y, giving [Player 1/2] the edge in terms of health and availability.
-
-Injuries: [Player 1] had multiple injury issues last season, including [details], whereas [Player 2] missed [X] games and remained [injury status].
-
-Performance Stats: While [Player 1] scores more points per game (X vs. Y), [Player 2] has better overall efficiency, with a higher field goal percentage (X% vs. Y%), fewer turnovers (X vs. Y), and superior [rebounds/assists/other categories].
-
-Versatility and Reliability: [Player 2] offers a more balanced stat line, contributing heavily in multiple areas with fewer injury risks and more consistency across the board.
-
-Given [Player 2]'s superior availability, fewer injuries, and all-around game, trading [Player 1] for [Player 2] would likely be a good decision if you're seeking more reliability and balanced contributions, despite losing some [category] output.'
-
-Make sure to include detailed analysis of the players' stats and their injury history for an informed decision.`;
+Start by summarizing the games played and who has the edge in health and availability. Discuss the injury history of both players, mentioning any significant injuries and missed games. Compare their performance stats (points, efficiency, rebounds, assists, etc.). Conclude by discussing versatility and reliability, identifying who is the better trade overall, and why.`;
 
     // Call Gemini API
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
@@ -210,6 +262,7 @@ cron.schedule('0 * * * *', updateData);
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Filter table available at http://localhost:${PORT}/filtertable`);
     console.log(`View HTML table at http://localhost:${PORT}/htmltable`);
-    console.log(`View comparison at http://localhost:3000/api/players`);
+    console.log(`View comparison at http://localhost:${PORT}/api/players`);
 });
