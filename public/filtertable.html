@@ -16,102 +16,150 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom Tailwind Configuration -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'ballhog-blue': '#1B4B8A',
-                        'ballhog-orange': '#FF6B00',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
+    <style>
+        /* Additional styles for stat classes */
+        .stat-elite { color: #2da44e; font-weight: 600; }
+        .stat-very-good { color: #8bcd50; font-weight: 500; }
+        .stat-good { color: #b1e474; }
+        .stat-average { color: #6B7280; }
+        .stat-below-average { color: #e47474; }
+        .stat-not-good { color: #d73a4a; }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body>
     <!-- Header Section -->
-    <header class="bg-white shadow-sm">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
+    <header>
+        <nav>
+            <div class="header-nav">
                 <!-- Logo -->
-                <div class="flex items-center">
-                    <img src="./logo.png" alt="BallHog Analytics" class="h-8 w-auto">
-                    <h1 class="ml-3 text-xl font-bold text-ballhog-blue">BallHog Analytics</h1>
+                <div class="logo-container">
+                    <img src="./logo.png" alt="BallHog Analytics">
+                    <h1>BallHog Analytics</h1>
                 </div>
                 
                 <!-- Navigation Links -->
-                <div class="hidden md:flex space-x-8">
-                    <a href="/filtertable" class="text-gray-900 hover:text-ballhog-orange px-3 py-2 text-sm font-medium">Player Stats</a>
-                    <a href="/" class="text-gray-900 hover:text-ballhog-orange px-3 py-2 text-sm font-medium">Trade Analyzer</a>
+                <div class="nav-links">
+                    <a href="/filtertable" class="nav-link">Player Stats</a>
+                    <a href="/" class="nav-link">Trade Analyzer</a>
                 </div>
             </div>
         </nav>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main>
         <!-- Page Title -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900">NBA Player Statistics</h2>
-            <p class="mt-1 text-sm text-gray-500">Real-time player stats updated hourly</p>
+        <div class="page-header">
+            <h2>NBA Player Statistics</h2>
+            <p>Real-time player stats updated hourly</p>
         </div>
 
         <!-- Filters Section -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="filters-container">
+            <div class="filters-grid">
                 <!-- Search Input -->
-                <div>
-                    <label for="playerSearch" class="block text-sm font-medium text-gray-700">Search Player</label>
-                    <input type="text" id="playerSearch" placeholder="Enter player name..." 
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-ballhog-orange focus:ring-ballhog-orange">
+                <div class="filter-group">
+                    <label for="playerSearch">Search Player</label>
+                    <input type="text" id="playerSearch" class="filter-input" placeholder="Enter player name...">
                 </div>
 
                 <!-- Position Filter -->
-                <div>
-                    <label for="positionFilter" class="block text-sm font-medium text-gray-700">Position</label>
-                    <select id="positionFilter" 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-ballhog-orange focus:ring-ballhog-orange">
+                <div class="filter-group">
+                    <label for="positionFilter">Position</label>
+                    <select id="positionFilter" class="filter-select">
                         <option value="">All Positions</option>
                     </select>
                 </div>
 
                 <!-- Team Filter -->
-                <div>
-                    <label for="teamFilter" class="block text-sm font-medium text-gray-700">Team</label>
-                    <select id="teamFilter" 
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-ballhog-orange focus:ring-ballhog-orange">
+                <div class="filter-group">
+                    <label for="teamFilter">Team</label>
+                    <select id="teamFilter" class="filter-select">
                         <option value="">All Teams</option>
+                    </select>
+                </div>
+
+                <!-- Stats Ranking Filter -->
+                <div class="filter-group">
+                    <label for="statRankingFilter">Sort By</label>
+                    <select id="statRankingFilter" class="filter-select">
+                        <option value="">No Sorting</option>
+                        <option value="pts">Points</option>
+                        <option value="ast">Assists</option>
+                        <option value="reb">Rebounds</option>
+                        <option value="stl">Steals</option>
+                        <option value="blk">Blocks</option>
+                        <option value="3ptm">3 Pointers Made</option>
+                        <option value="fg%">Field Goal %</option>
+                        <option value="ft%">Free Throw %</option>
+                        <option value="min">Minutes</option>
+                        <option value="usage">Usage %</option>
+                        <option value="ballhog">Ball Hog Rating</option>
+                    </select>
+                </div>
+
+                <!-- Sort Order -->
+                <div class="filter-group">
+                    <label for="sortOrderFilter">Sort Order</label>
+                    <select id="sortOrderFilter" class="filter-select">
+                        <option value="desc">Highest to Lowest</option>
+                        <option value="asc">Lowest to Highest</option>
                     </select>
                 </div>
             </div>
         </div>
 
+        <!-- Stats Summary Section -->
+        <div id="statSummary" class="hidden">
+            <!-- Will be populated by JavaScript -->
+        </div>
+
+        <!-- Results Count and Export Options -->
+        <div class="table-actions">
+            <span id="totalResults"></span>
+            <div class="action-buttons">
+                <button onclick="exportTableToCSV()" class="action-button">Export CSV</button>
+                <button onclick="printTable()" class="action-button">Print</button>
+            </div>
+        </div>
+
         <!-- Column Selector -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Customize Columns</h3>
-            <div id="columnSelector" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div class="column-selector">
+            <h3>Customize Columns</h3>
+            <div id="columnSelector" class="column-grid">
                 <!-- Column checkboxes will be populated here -->
             </div>
         </div>
 
         <!-- Stats Table -->
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="overflow-x-auto">
-                <table id="playerStatsTable" class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+        <div class="table-container">
+            <div class="table-wrapper">
+                <table id="playerStatsTable">
+                    <thead>
                         <tr>
-                            <!-- Table headers will be populated dynamically -->
+                            <th data-column="rank">#</th>
+                            <th data-column="player">Player Name</th>
+                            <th data-column="pos">POS</th>
+                            <th data-column="team">Team</th>
+                            <th data-column="min">MPG</th>
+                            <th data-column="usage">USG%</th>
+                            <th data-column="pts">PPG</th>
+                            <th data-column="reb">RPG</th>
+                            <th data-column="ast">AST</th>
+                            <th data-column="stl">STL</th>
+                            <th data-column="blk">BLK</th>
+                            <th data-column="fgm">FGM</th>
+                            <th data-column="fga">FGA</th>
+                            <th data-column="fg%">FG%</th>
+                            <th data-column="ftm">FTM</th>
+                            <th data-column="fta">FTA</th>
+                            <th data-column="ft%">FT%</th>
+                            <th data-column="3ptm">3PTM</th>
+                            <th data-column="to">TO</th>
+                            <th data-column="total">TOTAL</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="table-body">
                         <!-- Table rows will be populated dynamically -->
                     </tbody>
                 </table>
@@ -119,18 +167,16 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-12">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p class="text-center text-sm text-gray-500">
-                © 2024 BallHog Analytics. All rights reserved.
-            </p>
-        </div>
-    </footer>
-
     <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="hidden fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-ballhog-orange"></div>
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="back-to-top-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
     </div>
 
     <!-- External JavaScript -->

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NBA Fantasy Stats Table - Player Statistics and Analytics">
+    <title>Fantasy Table | NBA Player Stats</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./public/images/favicon.ico">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="./styletablefilter copy.css.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-blue': '#2f375b',
+                        'light-blue': '#3d4675',
+                        'orange-button': '#C15E3A'
+                    },
+                    fontFamily: {
+                        'space': ['Space Grotesk', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-blue font-space">
+    <!-- Header Section -->
+    <header class="w-full p-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-4xl text-white font-bold tracking-wider">Fantasy Table</h1>
+                <button class="bg-orange-button text-white px-6 py-2 rounded-md hover:bg-opacity-90 transition-colors">
+                    View All Projections
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4">
+        <!-- Filters Section -->
+        <div class="bg-light-blue rounded-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Search Input -->
+                <div>
+                    <label for="playerSearch" class="block text-sm font-medium text-white mb-2">Search Player</label>
+                    <input type="text" 
+                           id="playerSearch" 
+                           placeholder="Enter player name..." 
+                           class="w-full bg-dark-blue bg-opacity-50 text-white placeholder-gray-400 rounded-md border border-gray-600 focus:border-orange-button focus:ring-1 focus:ring-orange-button">
+                </div>
+
+                <!-- Position Filter -->
+                <div>
+                    <label for="positionFilter" class="block text-sm font-medium text-white mb-2">Position</label>
+                    <select id="positionFilter" 
+                            class="w-full bg-dark-blue bg-opacity-50 text-white rounded-md border border-gray-600 focus:border-orange-button focus:ring-1 focus:ring-orange-button">
+                        <option value="">All Positions</option>
+                    </select>
+                </div>
+
+                <!-- Team Filter -->
+                <div>
+                    <label for="teamFilter" class="block text-sm font-medium text-white mb-2">Team</label>
+                    <select id="teamFilter" 
+                            class="w-full bg-dark-blue bg-opacity-50 text-white rounded-md border border-gray-600 focus:border-orange-button focus:ring-1 focus:ring-orange-button">
+                        <option value="">All Teams</option>
+                    </select>
+                </div>
+
+                <!-- Stats Ranking Filter -->
+                <div>
+                    <label for="statRankingFilter" class="block text-sm font-medium text-white mb-2">Rank Players By</label>
+                    <select id="statRankingFilter" 
+                            class="w-full bg-dark-blue bg-opacity-50 text-white rounded-md border border-gray-600 focus:border-orange-button focus:ring-1 focus:ring-orange-button">
+                        <option value="">No Ranking</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column Selector (Hidden by default, can be toggled) -->
+        <div id="columnSelector" class="hidden bg-light-blue rounded-lg p-6 mb-6">
+            <!-- Will be populated by JavaScript -->
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-responsive-wrapper">
+            <table id="playerStatsTable" class="min-w-full">
+                <thead>
+                    <tr>
+                        <th class="text-left">#</th>
+                        <th class="text-left">Player</th>
+                        <th class="text-center">MIN</th>
+                        <th class="text-center">FGM</th>
+                        <th class="text-center">FGA</th>
+                        <th class="text-center">FG%</th>
+                        <th class="text-center">FTM</th>
+                        <th class="text-center">FTA</th>
+                        <th class="text-center">FT%</th>
+                        <th class="text-center">3PTM</th>
+                        <th class="text-center">PTS</th>
+                        <th class="text-center">REB</th>
+                        <th class="text-center">AST</th>
+                        <th class="text-center">STL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table content will be dynamically populated -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden fixed inset-0 bg-dark-blue bg-opacity-75 flex items-center justify-center">
+        <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-orange-button"></div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" 
+            class="hidden fixed bottom-8 right-8 bg-orange-button text-white p-3 rounded-full shadow-lg hover:bg-opacity-90 transition-all focus:outline-none focus:ring-2 focus:ring-orange-button focus:ring-opacity-50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+
+    <!-- External JavaScript -->
+    <script src="./scripttablefilter copy.js"></script>
+</body>
+</html>
